@@ -17,7 +17,7 @@ namespace btl_lttq
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FriendListForm());
+            Application.Run(new ProfileForm());
         }
     }
 }
