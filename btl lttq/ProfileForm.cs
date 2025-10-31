@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 
 namespace btl_lttq
@@ -11,6 +10,10 @@ namespace btl_lttq
         private string CurrentUsername = "anninh";
         private bool isEditing = false;
 
+        // 🔹 Lưu dữ liệu gốc để khôi phục nếu hủy
+        private string originalFullName, originalEmail, originalPhone, originalGender;
+        private string originalHometown, originalEducation, originalWork, originalRelationship;
+
         public ProfileForm()
         {
             InitializeComponent();
@@ -18,14 +21,37 @@ namespace btl_lttq
 
         private void ProfileForm_Load(object sender, EventArgs e)
         {
-            LoadUserProfile();
-            SetEditMode(false);
-
+            // 🔹 Font & màu nền
             this.Font = new Font("Segoe UI", 10, FontStyle.Regular);
             this.BackColor = Color.WhiteSmoke;
 
+            // 🔹 ComboBox giới tính
+            cboGender.Items.Clear();
+            cboGender.Items.AddRange(new string[] { "Nam", "Nữ", "Khác" });
+            cboGender.SelectedIndexChanged += (s, ev) =>
+            {
+                cboGender.Text = cboGender.SelectedItem?.ToString();
+            };
+
+            // 🔹 Tải dữ liệu hồ sơ
+            LoadUserProfile();
+
+            // 🔹 Khóa chỉnh sửa
+            SetEditMode(false);
+
+            // 🔹 Style nút
             StyleButton(btnEdit, Color.FromArgb(66, 133, 244));   // xanh biển
             StyleButton(btnUpdate, Color.FromArgb(52, 168, 83));  // xanh lá
+
+            // 🔹 Màu chữ textbox
+            foreach (Control ctrl in this.Controls)
+            {
+                if (ctrl is TextBox txt)
+                {
+                    txt.ForeColor = Color.FromArgb(0, 102, 255); // xanh #0066FF
+                    txt.Font = new Font("Segoe UI", 10, FontStyle.Regular);
+                }
+            }
         }
 
         private void StyleButton(Button btn, Color color)
@@ -45,6 +71,7 @@ namespace btl_lttq
         [System.Runtime.InteropServices.DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
 
+        // 🔹 Load dữ liệu từ SQL
         private void LoadUserProfile()
         {
             try
@@ -53,30 +80,44 @@ namespace btl_lttq
                     "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
                 {
                     conn.Open();
+
                     string sql = @"
-                        SELECT FullName, Email, PhoneNumber, Gender, Hometown, Education, Work, Relationship, AvatarUrl
-                        FROM Users WHERE UserName = @u";
+                        SELECT 
+                            u.Email,
+                            p.FullName,
+                            p.Gender,
+                            p.Phone,
+                            p.Hometown,
+                            p.Education,
+                            p.Work,
+                            p.Relationship
+                        FROM dbo.Users u
+                        LEFT JOIN dbo.UserProfiles p ON u.Id = p.UserId
+                        WHERE u.UserName = @u";
+
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@u", CurrentUsername);
 
-                    SqlDataReader r = cmd.ExecuteReader();
-                    if (r.Read())
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    if (reader.Read())
                     {
-                        txtFullName.Text = r["FullName"].ToString();
-                        txtEmail.Text = r["Email"].ToString();
-                        txtPhone.Text = r["PhoneNumber"].ToString();
-                        cboGender.Text = r["Gender"].ToString();
-                        txtHometown.Text = r["Hometown"].ToString();
-                        txtEducation.Text = r["Education"].ToString();
-                        txtWork.Text = r["Work"].ToString();
-                        txtRelationship.Text = r["Relationship"].ToString();
+                        txtFullName.Text = reader["FullName"]?.ToString();
+                        txtEmail.Text = reader["Email"]?.ToString();
+                        txtPhone.Text = reader["Phone"]?.ToString();
+                        cboGender.Text = reader["Gender"]?.ToString();
+                        txtHometown.Text = reader["Hometown"]?.ToString();
+                        txtEducation.Text = reader["Education"]?.ToString();
+                        txtWork.Text = reader["Work"]?.ToString();
+                        txtRelationship.Text = reader["Relationship"]?.ToString();
 
-                        string avatarPath = Path.Combine(Application.StartupPath, "Images", r["AvatarUrl"].ToString());
-                        if (File.Exists(avatarPath))
-                            picAvatar.Image = Image.FromFile(avatarPath);
-                        else
-                            picAvatar.BackColor = Color.LightGray;
+                        if (string.IsNullOrEmpty(cboGender.Text) && cboGender.Items.Count > 0)
+                            cboGender.SelectedIndex = 0;
+
+                        // 🔹 Lưu dữ liệu gốc
+                        SaveOriginalValues();
                     }
+
+                    reader.Close();
                 }
             }
             catch (Exception ex)
@@ -85,27 +126,77 @@ namespace btl_lttq
             }
         }
 
+        // 🔹 Lưu dữ liệu gốc
+        private void SaveOriginalValues()
+        {
+            originalFullName = txtFullName.Text;
+            originalEmail = txtEmail.Text;
+            originalPhone = txtPhone.Text;
+            originalGender = cboGender.Text;
+            originalHometown = txtHometown.Text;
+            originalEducation = txtEducation.Text;
+            originalWork = txtWork.Text;
+            originalRelationship = txtRelationship.Text;
+        }
+
+        // 🔹 Khôi phục dữ liệu gốc
+        private void RestoreOriginalValues()
+        {
+            txtFullName.Text = originalFullName;
+            txtEmail.Text = originalEmail;
+            txtPhone.Text = originalPhone;
+            cboGender.Text = originalGender;
+            txtHometown.Text = originalHometown;
+            txtEducation.Text = originalEducation;
+            txtWork.Text = originalWork;
+            txtRelationship.Text = originalRelationship;
+        }
+
+        // 🔹 Bật/tắt chỉnh sửa
+        private void SetEditMode(bool enable)
+        {
+            RoundedTextBox[] boxes =
+            {
+        txtFullName, txtEmail, txtPhone,
+        txtHometown, txtEducation, txtWork, txtRelationship
+    };
+
+            foreach (var box in boxes)
+            {
+                box.ReadOnly = !enable;           // ✅ Chỉ khóa thao tác gõ, không đổi màu
+                box.EditingMode = enable;
+                box.BackColor = Color.White;      // Giữ trắng
+                box.ForeColor = Color.Black;      // Giữ đen
+            }
+
+            cboGender.Enabled = enable;
+            cboGender.BackColor = Color.White;
+            cboGender.ForeColor = Color.Black;
+
+            btnUpdate.Enabled = enable;
+        }
+
+
+
+
         private void btnEdit_Click(object sender, EventArgs e)
         {
             isEditing = !isEditing;
-            SetEditMode(isEditing);
-            btnEdit.Text = isEditing ? "🔒 Hủy sửa" : "✏️ Sửa thông tin";
+
+            if (isEditing)
+            {
+                btnEdit.Text = "❌ Hủy sửa";
+                SetEditMode(true);
+            }
+            else
+            {
+                RestoreOriginalValues();
+                btnEdit.Text = "✏️ Sửa thông tin";
+                SetEditMode(false);
+            }
         }
 
-        private void SetEditMode(bool enable)
-        {
-            txtFullName.ReadOnly = !enable;
-            txtPhone.ReadOnly = !enable;
-            cboGender.Enabled = enable;
-            txtHometown.ReadOnly = !enable;
-            txtEducation.ReadOnly = !enable;
-            txtWork.ReadOnly = !enable;
-            txtRelationship.ReadOnly = !enable;
-
-            btnUpdate.Enabled = enable;
-            picAvatar.Enabled = enable;
-        }
-
+        // 🔹 Lưu cập nhật
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (!isEditing)
@@ -120,18 +211,31 @@ namespace btl_lttq
                     "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
                 {
                     conn.Open();
+
                     string sql = @"
-                        UPDATE Users SET
-                            FullName = @n,
-                            PhoneNumber = @p,
-                            Gender = @g,
-                            Hometown = @h,
-                            Education = @e,
-                            Work = @w,
-                            Relationship = @r,
-                            UpdatedAt = SYSUTCDATETIME()
-                        WHERE UserName = @u";
+                        UPDATE u
+                        SET u.Email = @em,
+                            u.UpdatedAt = SYSUTCDATETIME()
+                        FROM dbo.Users u
+                        WHERE u.UserName = @u;
+
+                        UPDATE p
+                        SET 
+                            p.FullName = @n,
+                            p.Phone = @p,
+                            p.Gender = @g,
+                            p.Hometown = @h,
+                            p.Education = @e,
+                            p.Work = @w,
+                            p.Relationship = @r,
+                            p.UpdatedAt = SYSUTCDATETIME()
+                        FROM dbo.UserProfiles p
+                        INNER JOIN dbo.Users u ON p.UserId = u.Id
+                        WHERE u.UserName = @u;
+                    ";
+
                     SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@em", txtEmail.Text);
                     cmd.Parameters.AddWithValue("@n", txtFullName.Text);
                     cmd.Parameters.AddWithValue("@p", txtPhone.Text);
                     cmd.Parameters.AddWithValue("@g", cboGender.Text);
@@ -145,42 +249,17 @@ namespace btl_lttq
                 }
 
                 MessageBox.Show("✅ Cập nhật hồ sơ thành công!");
+
+                // 🔹 Lưu lại dữ liệu mới làm dữ liệu gốc
+                SaveOriginalValues();
+
                 SetEditMode(false);
+                isEditing = false;
                 btnEdit.Text = "✏️ Sửa thông tin";
             }
             catch (Exception ex)
             {
                 MessageBox.Show("❌ Lỗi cập nhật: " + ex.Message);
-            }
-        }
-
-        private void picAvatar_Click(object sender, EventArgs e)
-        {
-            if (!isEditing)
-            {
-                MessageBox.Show("Hãy bật chế độ chỉnh sửa để thay ảnh!", "Thông báo");
-                return;
-            }
-
-            OpenFileDialog dlg = new OpenFileDialog();
-            dlg.Filter = "Ảnh (*.jpg;*.png)|*.jpg;*.png";
-            if (dlg.ShowDialog() == DialogResult.OK)
-            {
-                string fileName = Path.GetFileName(dlg.FileName);
-                string destPath = Path.Combine(Application.StartupPath, "Images", fileName);
-                File.Copy(dlg.FileName, destPath, true);
-
-                picAvatar.Image = Image.FromFile(destPath);
-
-                using (SqlConnection conn = new SqlConnection(
-                    "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
-                {
-                    conn.Open();
-                    SqlCommand cmd = new SqlCommand("UPDATE Users SET AvatarUrl = @a WHERE UserName = @u", conn);
-                    cmd.Parameters.AddWithValue("@a", fileName);
-                    cmd.Parameters.AddWithValue("@u", CurrentUsername);
-                    cmd.ExecuteNonQuery();
-                }
             }
         }
     }

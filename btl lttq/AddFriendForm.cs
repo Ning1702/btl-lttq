@@ -11,10 +11,13 @@ namespace btl_lttq
     {
         private List<FriendRequest> allRequests = new List<FriendRequest>();
         private string connectionString = "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;";
+        private FriendListForm _friendListForm; // 🔹 Form danh sách bạn bè để quay lại
 
-        public AddFriendForm()
+        // ✅ Constructor nhận tham chiếu FriendListForm
+        public AddFriendForm(FriendListForm friendListForm)
         {
             InitializeComponent();
+            _friendListForm = friendListForm;
         }
 
         private void AddFriendForm_Load(object sender, EventArgs e)
@@ -23,7 +26,58 @@ namespace btl_lttq
             flowRequests.WrapContents = false;
             flowRequests.FlowDirection = FlowDirection.TopDown;
             LoadFriendRequests();
+
+            // Placeholder cho ô tìm kiếm
+            txtSearch.ForeColor = Color.Gray;
+            txtSearch.Text = "Tìm lời kết bạn";
+            txtSearch.Font = new Font("Segoe UI", 12, FontStyle.Italic);
+            txtSearch.GotFocus += RemovePlaceholder;
+            txtSearch.LostFocus += AddPlaceholder;
+
+            // Click ra ngoài -> bỏ focus, vẫn cho phép focus vào TextBox
+            AttachClearFocusHandlers(this);
+
+            // Nếu bạn ADD động các panel vào flowRequests, gắn handler cho control mới
+            flowRequests.ControlAdded += (s, ev) => AttachClearFocusHandlers(ev.Control);
         }
+
+        // helper: gắn ClearFocus cho toàn bộ cây control (trừ TextBox)
+        private void AttachClearFocusHandlers(Control root)
+        {
+            void ClearFocus(object s, EventArgs ev)
+            {
+                if (!(s is TextBox))
+                    this.ActiveControl = null;
+            }
+
+            root.Click -= ClearFocus; // tránh nhân handler
+            root.Click += ClearFocus;
+
+            foreach (Control child in root.Controls)
+                AttachClearFocusHandlers(child);
+        }
+
+        // placeholder handlers
+        private void RemovePlaceholder(object sender, EventArgs e)
+        {
+            if (txtSearch.Text == "Tìm lời kết bạn")
+            {
+                txtSearch.Text = "";
+                txtSearch.ForeColor = Color.Black;
+                txtSearch.Font = new Font("Segoe UI", 10, FontStyle.Regular);
+            }
+        }
+        private void AddPlaceholder(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtSearch.Text))
+            {
+                txtSearch.Text = "Tìm lời kết bạn";
+                txtSearch.ForeColor = Color.Gray;
+                txtSearch.Font = new Font("Segoe UI", 10, FontStyle.Italic);
+            }
+        }
+
+
 
         // 🔹 Load danh sách lời mời kết bạn (Status = 0)
         private void LoadFriendRequests()
@@ -123,7 +177,7 @@ namespace btl_lttq
                 btnAccept.Size = new Size(90, 30);
                 btnAccept.Anchor = AnchorStyles.Top | AnchorStyles.Right;
                 btnAccept.Location = new Point(p.Width - 190, 20);
-                btnAccept.Click += (s, e) => AcceptRequest(req.FriendshipId, req.SenderId);
+                btnAccept.Click += (s, e) => AcceptRequest(req.FriendshipId);
 
                 // Nút “Xóa”
                 Button btnDelete = new Button();
@@ -147,7 +201,7 @@ namespace btl_lttq
         }
 
         // 🔹 Khi người dùng chấp nhận lời mời
-        private void AcceptRequest(Guid friendshipId, Guid senderId)
+        private void AcceptRequest(Guid friendshipId)
         {
             try
             {
@@ -155,29 +209,23 @@ namespace btl_lttq
                 {
                     conn.Open();
 
-                    // Cập nhật trạng thái lời mời
-                    string updateSql = "UPDATE Friendships SET Status = 1 WHERE Id = @id";
+                    // Cập nhật trạng thái lời mời sang accepted
+                    string updateSql = "UPDATE Friendships SET Status = 1, UpdatedAt = SYSDATETIME() WHERE Id = @id";
                     SqlCommand updateCmd = new SqlCommand(updateSql, conn);
                     updateCmd.Parameters.AddWithValue("@id", friendshipId);
                     updateCmd.ExecuteNonQuery();
-
-                    // Tạo quan hệ 2 chiều (nếu chưa có)
-                    Guid currentUserId = GetUserId("anninh");
-                    string insertSql = @"
-                        IF NOT EXISTS (
-                            SELECT 1 FROM Friendships 
-                            WHERE RequesterId = @me AND AddresseeId = @friend
-                        )
-                        INSERT INTO Friendships (RequesterId, AddresseeId, Status)
-                        VALUES (@me, @friend, 1)";
-                    SqlCommand insertCmd = new SqlCommand(insertSql, conn);
-                    insertCmd.Parameters.AddWithValue("@me", currentUserId);
-                    insertCmd.Parameters.AddWithValue("@friend", senderId);
-                    insertCmd.ExecuteNonQuery();
                 }
 
                 MessageBox.Show("✅ Đã chấp nhận lời mời kết bạn!");
+
+                // Làm mới danh sách lời mời
                 LoadFriendRequests();
+
+                // Nếu có form FriendList -> reload lại danh sách bạn
+                if (_friendListForm != null && !_friendListForm.IsDisposed)
+                {
+                    _friendListForm.ReloadFriends();
+                }
             }
             catch (Exception ex)
             {
@@ -216,6 +264,25 @@ namespace btl_lttq
                 cmd.Parameters.AddWithValue("@u", username);
                 return (Guid)cmd.ExecuteScalar();
             }
+        }
+
+        // 🔹 Nút “Bạn bè” → quay lại form FriendList
+        private void btnFriend_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+
+            if (_friendListForm != null && !_friendListForm.IsDisposed)
+            {
+                _friendListForm.Show();
+                _friendListForm.ReloadFriends(); // cập nhật lại danh sách ngay khi quay lại
+            }
+            else
+            {
+                FriendListForm newFriendList = new FriendListForm();
+                newFriendList.Show();
+            }
+
+            this.Close();
         }
     }
 

@@ -9,6 +9,7 @@ namespace btl_lttq
     {
         private TextBox innerTextBox = new TextBox();
         private bool isFocused = false;
+        private bool isEditingMode = false; // chế độ sửa thông tin
 
         public string TextValue
         {
@@ -22,32 +23,77 @@ namespace btl_lttq
             set => innerTextBox.ReadOnly = value;
         }
 
+        public bool EditingMode
+        {
+            get => isEditingMode;
+            set { isEditingMode = value; Invalidate(); }
+        }
+
         public RoundedTextBox()
         {
+            // Giao diện
             this.BackColor = Color.White;
             this.Padding = new Padding(4);
             this.Size = new Size(180, 28);
+            this.ForeColor = Color.Black;
+            this.Font = new Font("Segoe UI", 10, FontStyle.Regular);
 
             innerTextBox.BorderStyle = BorderStyle.None;
             innerTextBox.Font = new Font("Segoe UI", 10);
-            innerTextBox.ForeColor = Color.DimGray;
+            innerTextBox.ForeColor = Color.Black;
             innerTextBox.BackColor = Color.White;
             innerTextBox.Dock = DockStyle.Fill;
 
-            innerTextBox.GotFocus += (s, e) => { isFocused = true; Invalidate(); };
-            innerTextBox.LostFocus += (s, e) => { isFocused = false; Invalidate(); };
+            // Focus
+            innerTextBox.GotFocus += (s, e) =>
+            {
+                if (innerTextBox.ReadOnly)
+                {
+                    this.Parent?.SelectNextControl(this, true, true, true, true);
+                    return;
+                }
+                isFocused = true;
+                Invalidate(); // vẽ lại viền xanh đậm khi focus
+            };
+
+            innerTextBox.LostFocus += (s, e) =>
+            {
+                isFocused = false;
+                Invalidate(); // trở lại xanh nhạt khi mất focus
+            };
+
+            // Chặn click khi bị khóa
+            this.MouseDown += (s, e) =>
+            {
+                if (innerTextBox.ReadOnly)
+                    this.Parent?.SelectNextControl(this, true, true, true, true);
+            };
+            innerTextBox.MouseDown += (s, e) =>
+            {
+                if (innerTextBox.ReadOnly)
+                    this.Parent?.SelectNextControl(this, true, true, true, true);
+            };
 
             this.Controls.Add(innerTextBox);
         }
 
+        // Vẽ border bo tròn
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            Color borderColor = isFocused
-                ? Color.FromArgb(51, 204, 255)   // #33CCFF khi focus
-                : Color.FromArgb(102, 204, 255); // #66CCFF mặc định
+            // 🔹 Quy tắc chọn màu viền:
+            // - Không focus → xanh nhạt (#66CCFF)
+            // - Focus → xanh đậm (#0066FF)
+            // - Bị khóa → xám nhạt
+            Color borderColor;
+            if (!this.Enabled)
+                borderColor = Color.FromArgb(200, 230, 250);
+            else if (isFocused)
+                borderColor = Color.FromArgb(0, 102, 255); // xanh đậm khi focus
+            else
+                borderColor = Color.FromArgb(102, 204, 255); // xanh nhạt mặc định
 
             int radius = 8;
             Rectangle rect = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
@@ -71,7 +117,6 @@ namespace btl_lttq
             return path;
         }
 
-        // Đồng bộ giá trị Text cho code cũ
         public override string Text
         {
             get => innerTextBox.Text;
