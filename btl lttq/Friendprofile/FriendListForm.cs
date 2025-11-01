@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace btl_lttq
+namespace btl_lttq.Friendprofile
 {
     public partial class FriendListForm : Form
     {

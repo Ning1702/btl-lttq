@@ -1,4 +1,4 @@
-﻿namespace btl_lttq
+﻿namespace btl_lttq.Friendprofile
 {
     partial class ProfileForm
     {
@@ -12,13 +12,13 @@
         private System.Windows.Forms.Label lblEducation;
         private System.Windows.Forms.Label lblWork;
         private System.Windows.Forms.Label lblRelationship;
-        private btl_lttq.RoundedTextBox txtFullName;
-        private btl_lttq.RoundedTextBox txtEmail;
-        private btl_lttq.RoundedTextBox txtPhone;
-        private btl_lttq.RoundedTextBox txtHometown;
-        private btl_lttq.RoundedTextBox txtEducation;
-        private btl_lttq.RoundedTextBox txtWork;
-        private btl_lttq.RoundedTextBox txtRelationship;
+        private btl_lttq.Friendprofile.RoundedTextBox txtFullName;
+        private btl_lttq.Friendprofile.RoundedTextBox txtEmail;
+        private btl_lttq.Friendprofile.RoundedTextBox txtPhone;
+        private btl_lttq.Friendprofile.RoundedTextBox txtHometown;
+        private btl_lttq.Friendprofile.RoundedTextBox txtEducation;
+        private btl_lttq.Friendprofile.RoundedTextBox txtWork;
+        private btl_lttq.Friendprofile.RoundedTextBox txtRelationship;
         private System.Windows.Forms.Button btnEdit;
         private System.Windows.Forms.Button btnUpdate;
 
@@ -44,14 +44,14 @@
             this.lblRelationship = new System.Windows.Forms.Label();
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnUpdate = new System.Windows.Forms.Button();
-            this.txtRelationship = new btl_lttq.RoundedTextBox();
-            this.txtWork = new btl_lttq.RoundedTextBox();
-            this.txtEducation = new btl_lttq.RoundedTextBox();
-            this.txtHometown = new btl_lttq.RoundedTextBox();
-            this.txtPhone = new btl_lttq.RoundedTextBox();
-            this.txtEmail = new btl_lttq.RoundedTextBox();
-            this.txtFullName = new btl_lttq.RoundedTextBox();
-            this.cboGender = new btl_lttq.RoundedComboBox();
+            this.txtRelationship = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtWork = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtEducation = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtHometown = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtPhone = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtEmail = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.txtFullName = new btl_lttq.Friendprofile.RoundedTextBox();
+            this.cboGender = new btl_lttq.Friendprofile.RoundedComboBox();
             this.SuspendLayout();
             // 
             // lblTitle

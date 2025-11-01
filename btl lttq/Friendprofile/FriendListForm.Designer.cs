@@ -1,4 +1,4 @@
-﻿namespace btl_lttq
+﻿namespace btl_lttq.Friendprofile
 {
     partial class FriendListForm
     {

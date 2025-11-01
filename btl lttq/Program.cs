@@ -1,4 +1,7 @@
-﻿using btl_lttq;
+﻿using btl_lttq.ChatClient;
+using btl_lttq.FacebookLite;
+using btl_lttq.Friendprofile;
+using btl_lttq.Login;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +20,7 @@ namespace btl_lttq
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FriendListForm());
+            Application.Run(new MessengerForm());
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 
-namespace btl_lttq
+namespace btl_lttq.Friendprofile
 {
     public partial class AddFriendForm : Form
     {

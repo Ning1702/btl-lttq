@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="MainForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Update="MainForm.Designer.cs"><DependentUpon>MainForm.cs</DependentUpon></Compile>
+    <EmbeddedResource Update="MainForm.resx"><DependentUpon>MainForm.cs</DependentUpon></EmbeddedResource>
+
+    <Compile Update="SettingForm.cs"><SubType>Form</SubType></Compile>
+    <Compile Update="SettingForm.Designer.cs"><DependentUpon>SettingForm.cs</DependentUpon></Compile>
+    <EmbeddedResource Update="SettingForm.resx"><DependentUpon>SettingForm.cs</DependentUpon></EmbeddedResource>
+
+    <Compile Update="SettingCard.cs"><SubType>UserControl</SubType></Compile>
+    <Compile Update="SettingCard.Designer.cs"><DependentUpon>SettingCard.cs</DependentUpon></Compile>
+    <EmbeddedResource Update="SettingCard.resx"><DependentUpon>SettingCard.cs</DependentUpon></EmbeddedResource>
+</ItemGroup>
+</Project>

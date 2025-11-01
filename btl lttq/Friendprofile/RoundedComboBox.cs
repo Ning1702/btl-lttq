@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace btl_lttq
+namespace btl_lttq.Friendprofile
 {
     public class RoundedComboBox : ComboBox
     {

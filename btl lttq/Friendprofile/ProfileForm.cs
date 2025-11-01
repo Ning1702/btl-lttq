@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace btl_lttq
+namespace btl_lttq.Friendprofile
 {
     public partial class ProfileForm : Form
     {
