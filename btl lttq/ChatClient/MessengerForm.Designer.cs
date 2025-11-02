@@ -61,6 +61,7 @@ namespace btl_lttq.ChatClient
             this.btnProfile = new System.Windows.Forms.Button();
             this.btnFriends = new System.Windows.Forms.Button();
             this.panelLeftTop = new System.Windows.Forms.Panel();
+            this.btnCreateGroup = new System.Windows.Forms.Button();
             this.txtGlobalSearch = new System.Windows.Forms.TextBox();
             this.splitterLeft = new System.Windows.Forms.Splitter();
             this.panelCenter = new System.Windows.Forms.Panel();
@@ -161,6 +162,7 @@ namespace btl_lttq.ChatClient
             // panelLeftTop
             // 
             this.panelLeftTop.BackColor = System.Drawing.Color.White;
+            this.panelLeftTop.Controls.Add(this.btnCreateGroup);
             this.panelLeftTop.Controls.Add(this.txtGlobalSearch);
             this.panelLeftTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelLeftTop.Location = new System.Drawing.Point(0, 0);
@@ -169,12 +171,20 @@ namespace btl_lttq.ChatClient
             this.panelLeftTop.Size = new System.Drawing.Size(280, 50);
             this.panelLeftTop.TabIndex = 2;
             // 
+            // btnCreateGroup
+            // 
+            this.btnCreateGroup.Location = new System.Drawing.Point(198, 17);
+            this.btnCreateGroup.Name = "btnCreateGroup";
+            this.btnCreateGroup.Size = new System.Drawing.Size(24, 23);
+            this.btnCreateGroup.TabIndex = 1;
+            this.btnCreateGroup.Text = "+";
+            this.btnCreateGroup.UseVisualStyleBackColor = true;
+            // 
             // txtGlobalSearch
             // 
-            this.txtGlobalSearch.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtGlobalSearch.Location = new System.Drawing.Point(8, 8);
+            this.txtGlobalSearch.Location = new System.Drawing.Point(12, 18);
             this.txtGlobalSearch.Name = "txtGlobalSearch";
-            this.txtGlobalSearch.Size = new System.Drawing.Size(264, 20);
+            this.txtGlobalSearch.Size = new System.Drawing.Size(180, 20);
             this.txtGlobalSearch.TabIndex = 0;
             // 
             // splitterLeft
@@ -368,6 +378,7 @@ namespace btl_lttq.ChatClient
             // 
             // lvSharedFiles
             // 
+            this.lvSharedFiles.FullRowSelect = true;
             this.lvSharedFiles.HideSelection = false;
             this.lvSharedFiles.Location = new System.Drawing.Point(8, 206);
             this.lvSharedFiles.Name = "lvSharedFiles";
@@ -429,7 +440,6 @@ namespace btl_lttq.ChatClient
             this.Controls.Add(this.panelLeft);
             this.Name = "MessengerForm";
             this.Text = "Messenger";
-            this.Load += new System.EventHandler(this.MessengerForm_Load);
             this.panelLeft.ResumeLayout(false);
             this.panelLeftBottom.ResumeLayout(false);
             this.panelLeftTop.ResumeLayout(false);
@@ -445,5 +455,7 @@ namespace btl_lttq.ChatClient
             this.ResumeLayout(false);
 
         }
+
+        private Button btnCreateGroup;
     }
 }

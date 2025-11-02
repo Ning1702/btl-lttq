@@ -1,3 +1,4 @@
+﻿using btl_lttq.Data;
 ﻿using btl_lttq.ChatClient;
 using btl_lttq.Data;
 using System;
@@ -7,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace btl_lttq.ChatClient
 {
@@ -184,6 +186,29 @@ namespace btl_lttq.ChatClient
                 f.ShowDialog(this);
             };
 
+            lvSharedFiles.View = View.Details;
+            lvSharedFiles.FullRowSelect = true;
+            lvSharedFiles.GridLines = false;
+
+            if (lvSharedFiles.Columns.Count == 0)
+            {
+                lvSharedFiles.Columns.Add("Tên tệp", 180);
+                lvSharedFiles.Columns.Add("Kích thước", 80);
+            }
+
+            lvSharedFiles.DoubleClick += (s, e) =>
+            {
+                if (lvSharedFiles.SelectedItems.Count == 0) return;
+                var it = lvSharedFiles.SelectedItems[0];
+                var path = it.Tag as string;
+                if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                {
+                    MessageBox.Show("Không tìm thấy file trên máy.");
+                    return;
+                }
+                System.Diagnostics.Process.Start(path);
+            };
+            btnCreateGroup.Click += async (s, e) => await CreateNewGroupAsync();
         }
 
         // ───────────────────────────────────────────
@@ -591,7 +616,7 @@ WHERE Id = @cid;";
             using (var ofd = new OpenFileDialog())
             {
                 ofd.Title = "Chọn file để gửi";
-                ofd.Filter = "Tất cả file (.)|*.*";
+                ofd.Filter = "Tất cả file (*.*)|*.*";
                 ofd.Multiselect = false;
 
                 if (ofd.ShowDialog(this) != DialogResult.OK)
@@ -632,7 +657,7 @@ VALUES (@mid, @name, @size, @url, @path);";
                         cmd.Parameters.AddWithValue("@mid", msgId);
                         cmd.Parameters.AddWithValue("@name", fileName);
                         cmd.Parameters.AddWithValue("@size", fileSize);
-                        cmd.Parameters.AddWithValue("@url", filePath);   // ← quan trọng
+                        cmd.Parameters.AddWithValue("@url", filePath);
                         cmd.Parameters.AddWithValue("@path", filePath);
 
                         await cmd.ExecuteNonQueryAsync();
@@ -719,6 +744,7 @@ ORDER BY IsMe DESC, Name ASC;";
 
         private async Task LoadSharedFilesAsync(Guid conversationId)
         {
+            lvSharedFiles.BeginUpdate();
             lvSharedFiles.Items.Clear();
             try
             {
@@ -726,7 +752,7 @@ ORDER BY IsMe DESC, Name ASC;";
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-SELECT TOP 50 a.FileName, a.FileSize
+SELECT TOP 50 a.FileName, a.FileSize, a.Url
 FROM MessageAttachments a
 JOIN Messages m ON m.Id = a.MessageId
 WHERE m.ConversationId = @cid
@@ -737,10 +763,21 @@ ORDER BY a.Id DESC;";
                     {
                         while (await rd.ReadAsync())
                         {
-                            string name = rd.IsDBNull(0) ? "(tệp)" : rd.GetString(0);
-                            long size = rd.GetInt64(1);
+                            int fc = rd.FieldCount;   // 👈 số cột thực tế trả về
+
+                            string name = fc > 0 && !rd.IsDBNull(0) ? rd.GetString(0) : "(tệp)";
+                            long size = 0;
+                            if (fc > 1 && !rd.IsDBNull(1))
+                                size = rd.GetInt64(1);
+
+                            string path = fc > 2 && !rd.IsDBNull(2) ? rd.GetString(2) : null;
+                            if (fc > 2 && !rd.IsDBNull(2))
+                                path = rd.GetString(2);
+
                             var item = new ListViewItem(name);
                             item.SubItems.Add(string.Format("{0:0.#} KB", size / 1024.0));
+                            item.Tag = path;
+
                             lvSharedFiles.Items.Add(item);
                         }
                     }
@@ -751,6 +788,10 @@ ORDER BY a.Id DESC;";
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải tệp: " + ex.Message);
+            }
+            finally
+            {
+                lvSharedFiles.EndUpdate();
             }
         }
 
@@ -1175,9 +1216,6 @@ ORDER BY a.Id DESC;";
             lvConversations.EndUpdate();
         }
 
-
-
-
         private void txtSearchInChat_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -1387,20 +1425,83 @@ DELETE FROM ConversationMembers WHERE ConversationId=@cid AND UserId=@uid;";
         }
 
         // ───────────────────────────────────────────
-        private static bool IsInDesignMode()
+
+        private async Task CreateNewGroupAsync()
         {
-            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return true;
+            if (_currentUserId == Guid.Empty)
+            {
+                MessageBox.Show("Chưa xác định được người dùng hiện tại.");
+                return;
+            }
+
+            // hỏi tên nhóm
+            string groupName = PromptInput(
+                "Tạo nhóm mới",
+                "Nhập tên nhóm:",
+                "Nhóm mới"
+            );
+
+            if (string.IsNullOrWhiteSpace(groupName))
+                return;
+
             try
             {
-                return System.Diagnostics.Process.GetCurrentProcess().ProcessName
-                    .Equals("devenv", StringComparison.OrdinalIgnoreCase);
+                Guid newConvId;
+
+                using (var conn = await Task.Run(() => Db.OpenConn()))
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+DECLARE @newId UNIQUEIDENTIFIER = NEWID();
+
+INSERT INTO Conversations(Id, Title, IsGroup, CreatedBy, CreatedAt)
+VALUES(@newId, @title, 1, @uid, SYSUTCDATETIME());
+
+INSERT INTO ConversationMembers(ConversationId, UserId, Role)
+VALUES(@newId, @uid, 1);   -- người tạo là admin
+
+SELECT @newId;
+";
+                    cmd.Parameters.AddWithValue("@title", groupName.Trim());
+                    cmd.Parameters.AddWithValue("@uid", _currentUserId);
+
+                    var obj = await cmd.ExecuteScalarAsync();
+                    newConvId = (Guid)obj;
+                }
+
+                // load lại list hội thoại
+                await LoadConversationsAsync();
+
+                // chọn luôn nhóm vừa tạo
+                _currentConversationId = newConvId;
+                foreach (ListViewItem it in lvConversations.Items)
+                {
+                    if (it.Tag is Guid g && g == newConvId)
+                    {
+                        it.Selected = true;
+                        it.Focused = true;
+                        it.EnsureVisible();
+                        break;
+                    }
+                }
+
+                // load panel bên phải
+                await Task.WhenAll(
+                    LoadConversationHeaderAsync(newConvId),
+                    LoadMembersAsync(newConvId),
+                    LoadMessagesAsync(newConvId),
+                    LoadSharedFilesAsync(newConvId)
+                );
             }
-            catch { return false; }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Không tạo được nhóm: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Không tạo được nhóm: " + ex.Message);
+            }
         }
 
-        private void MessengerForm_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
