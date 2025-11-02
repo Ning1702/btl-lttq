@@ -46,13 +46,13 @@
             this.panelHeader.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelHeader.Location = new System.Drawing.Point(0, 0);
             this.panelHeader.Name = "panelHeader";
-            this.panelHeader.Size = new System.Drawing.Size(493, 100);
+            this.panelHeader.Size = new System.Drawing.Size(571, 100);
             this.panelHeader.TabIndex = 1;
             // 
             // btnFriend
             // 
             this.btnFriend.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFriend.Location = new System.Drawing.Point(363, 13);
+            this.btnFriend.Location = new System.Drawing.Point(400, 13);
             this.btnFriend.Name = "btnFriend";
             this.btnFriend.Size = new System.Drawing.Size(90, 38);
             this.btnFriend.TabIndex = 3;
@@ -63,16 +63,17 @@
             // btnSearch
             // 
             this.btnSearch.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSearch.Location = new System.Drawing.Point(363, 57);
+            this.btnSearch.Location = new System.Drawing.Point(400, 57);
             this.btnSearch.Name = "btnSearch";
             this.btnSearch.Size = new System.Drawing.Size(90, 37);
             this.btnSearch.TabIndex = 2;
             this.btnSearch.Text = "Tìm Kiếm";
             this.btnSearch.UseVisualStyleBackColor = true;
+            this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
             // 
             // txtSearch
             // 
-            this.txtSearch.Location = new System.Drawing.Point(30, 60);
+            this.txtSearch.Location = new System.Drawing.Point(67, 60);
             this.txtSearch.Name = "txtSearch";
             this.txtSearch.Size = new System.Drawing.Size(292, 20);
             this.txtSearch.TabIndex = 1;
@@ -94,7 +95,7 @@
             this.flowRequests.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowRequests.Location = new System.Drawing.Point(0, 100);
             this.flowRequests.Name = "flowRequests";
-            this.flowRequests.Size = new System.Drawing.Size(493, 558);
+            this.flowRequests.Size = new System.Drawing.Size(571, 558);
             this.flowRequests.TabIndex = 2;
             this.flowRequests.WrapContents = false;
             // 
@@ -102,7 +103,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(493, 658);
+            this.ClientSize = new System.Drawing.Size(571, 658);
             this.Controls.Add(this.flowRequests);
             this.Controls.Add(this.panelHeader);
             this.Name = "AddFriendForm";

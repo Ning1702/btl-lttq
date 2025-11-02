@@ -8,7 +8,7 @@ namespace btl_lttq.Login
     public partial class ForgotPasswordForm : Form
     {
         private static readonly string connectionString =
-            ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            ConfigurationManager.ConnectionStrings["MessengerDb"].ConnectionString;
 
         public ForgotPasswordForm()
         {

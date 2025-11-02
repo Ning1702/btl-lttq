@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace btl_lttq.Friendprofile
@@ -152,9 +153,13 @@ namespace btl_lttq.Friendprofile
             txtRelationship.Text = originalRelationship;
         }
 
-        // 🔹 Bật/tắt chỉnh sửa
+ 
+        // 🔹 Bật/tắt chỉnh sửa (luôn giữ nền xám nhạt)
         private void SetEditMode(bool enable)
         {
+            Color bgColor = Color.FromArgb(245, 245, 245); // 🎨 nền xám nhạt đồng bộ
+            Color textColor = Color.FromArgb(30, 30, 30);  // chữ đen nhẹ
+
             RoundedTextBox[] boxes =
             {
         txtFullName, txtEmail, txtPhone,
@@ -163,16 +168,28 @@ namespace btl_lttq.Friendprofile
 
             foreach (var box in boxes)
             {
-                box.ReadOnly = !enable;           // ✅ Chỉ khóa thao tác gõ, không đổi màu
+                // Nếu có TextBox con bên trong RoundedTextBox
+                if (box.Controls.OfType<TextBox>().FirstOrDefault() is TextBox inner)
+                {
+                    inner.ReadOnly = !enable;
+                    inner.BackColor = bgColor;
+                    inner.ForeColor = textColor;
+                    inner.BorderStyle = BorderStyle.None;
+                    inner.Cursor = enable ? Cursors.IBeam : Cursors.Default;
+                }
+
+                box.ReadOnly = !enable;
                 box.EditingMode = enable;
-                box.BackColor = Color.White;      // Giữ trắng
-                box.ForeColor = Color.Black;      // Giữ đen
+                box.BackColor = this.BackColor; // tránh lộ viền ngoài
+                box.TabStop = enable;
             }
 
+            // 🔹 ComboBox
             cboGender.Enabled = enable;
-            cboGender.BackColor = Color.White;
-            cboGender.ForeColor = Color.Black;
+            cboGender.BackColor = bgColor;
+            cboGender.ForeColor = textColor;
 
+            // 🔹 Nút Lưu
             btnUpdate.Enabled = enable;
         }
 

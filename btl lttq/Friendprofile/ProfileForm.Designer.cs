@@ -176,77 +176,98 @@
             // txtRelationship
             // 
             this.txtRelationship.BackColor = System.Drawing.Color.White;
+            this.txtRelationship.EditingMode = false;
+            this.txtRelationship.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtRelationship.ForeColor = System.Drawing.Color.Black;
             this.txtRelationship.Location = new System.Drawing.Point(34, 225);
             this.txtRelationship.Name = "txtRelationship";
             this.txtRelationship.Padding = new System.Windows.Forms.Padding(4);
             this.txtRelationship.ReadOnly = false;
-            this.txtRelationship.Size = new System.Drawing.Size(172, 30);
+            this.txtRelationship.Size = new System.Drawing.Size(172, 26);
             this.txtRelationship.TabIndex = 19;
             this.txtRelationship.TextValue = "";
             // 
             // txtWork
             // 
             this.txtWork.BackColor = System.Drawing.Color.White;
+            this.txtWork.EditingMode = false;
+            this.txtWork.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtWork.ForeColor = System.Drawing.Color.Black;
             this.txtWork.Location = new System.Drawing.Point(34, 172);
             this.txtWork.Name = "txtWork";
             this.txtWork.Padding = new System.Windows.Forms.Padding(4);
             this.txtWork.ReadOnly = false;
-            this.txtWork.Size = new System.Drawing.Size(172, 30);
+            this.txtWork.Size = new System.Drawing.Size(172, 26);
             this.txtWork.TabIndex = 20;
             this.txtWork.TextValue = "";
             // 
             // txtEducation
             // 
             this.txtEducation.BackColor = System.Drawing.Color.White;
+            this.txtEducation.EditingMode = false;
+            this.txtEducation.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtEducation.ForeColor = System.Drawing.Color.Black;
             this.txtEducation.Location = new System.Drawing.Point(34, 121);
             this.txtEducation.Name = "txtEducation";
             this.txtEducation.Padding = new System.Windows.Forms.Padding(4);
             this.txtEducation.ReadOnly = false;
-            this.txtEducation.Size = new System.Drawing.Size(172, 30);
+            this.txtEducation.Size = new System.Drawing.Size(172, 26);
             this.txtEducation.TabIndex = 21;
             this.txtEducation.TextValue = "";
             // 
             // txtHometown
             // 
             this.txtHometown.BackColor = System.Drawing.Color.White;
+            this.txtHometown.EditingMode = false;
+            this.txtHometown.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtHometown.ForeColor = System.Drawing.Color.Black;
             this.txtHometown.Location = new System.Drawing.Point(34, 72);
             this.txtHometown.Name = "txtHometown";
             this.txtHometown.Padding = new System.Windows.Forms.Padding(4);
             this.txtHometown.ReadOnly = false;
-            this.txtHometown.Size = new System.Drawing.Size(172, 30);
+            this.txtHometown.Size = new System.Drawing.Size(172, 26);
             this.txtHometown.TabIndex = 22;
             this.txtHometown.TextValue = "";
             // 
             // txtPhone
             // 
             this.txtPhone.BackColor = System.Drawing.Color.White;
+            this.txtPhone.EditingMode = false;
+            this.txtPhone.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtPhone.ForeColor = System.Drawing.Color.Black;
             this.txtPhone.Location = new System.Drawing.Point(301, 172);
             this.txtPhone.Name = "txtPhone";
             this.txtPhone.Padding = new System.Windows.Forms.Padding(4);
             this.txtPhone.ReadOnly = false;
-            this.txtPhone.Size = new System.Drawing.Size(172, 30);
+            this.txtPhone.Size = new System.Drawing.Size(172, 26);
             this.txtPhone.TabIndex = 24;
             this.txtPhone.TextValue = "";
             // 
             // txtEmail
             // 
             this.txtEmail.BackColor = System.Drawing.Color.White;
+            this.txtEmail.EditingMode = false;
+            this.txtEmail.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtEmail.ForeColor = System.Drawing.Color.Black;
             this.txtEmail.Location = new System.Drawing.Point(301, 121);
             this.txtEmail.Name = "txtEmail";
             this.txtEmail.Padding = new System.Windows.Forms.Padding(4);
             this.txtEmail.ReadOnly = false;
-            this.txtEmail.Size = new System.Drawing.Size(172, 30);
+            this.txtEmail.Size = new System.Drawing.Size(172, 26);
             this.txtEmail.TabIndex = 25;
             this.txtEmail.TextValue = "";
             // 
             // txtFullName
             // 
             this.txtFullName.BackColor = System.Drawing.Color.White;
+            this.txtFullName.EditingMode = false;
+            this.txtFullName.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtFullName.ForeColor = System.Drawing.Color.Black;
             this.txtFullName.Location = new System.Drawing.Point(301, 72);
             this.txtFullName.Name = "txtFullName";
             this.txtFullName.Padding = new System.Windows.Forms.Padding(4);
             this.txtFullName.ReadOnly = false;
-            this.txtFullName.Size = new System.Drawing.Size(172, 30);
+            this.txtFullName.Size = new System.Drawing.Size(172, 26);
             this.txtFullName.TabIndex = 26;
             this.txtFullName.TextValue = "";
             // 
@@ -254,13 +275,24 @@
             // 
             this.cboGender.BackColor = System.Drawing.Color.White;
             this.cboGender.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+            this.cboGender.DropDownHeight = 168;
             this.cboGender.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboGender.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cboGender.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.cboGender.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
             this.cboGender.FormattingEnabled = true;
+            this.cboGender.IntegralHeight = false;
             this.cboGender.ItemHeight = 28;
             this.cboGender.Items.AddRange(new object[] {
+            "Nam",
+            "Nữ",
+            "Khác",
+            "Nam",
+            "Nữ",
+            "Khác",
+            "Nam",
+            "Nữ",
+            "Khác",
             "Nam",
             "Nữ",
             "Khác"});
@@ -273,7 +305,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(515, 349);
+            this.ClientSize = new System.Drawing.Size(509, 349);
             this.Controls.Add(this.cboGender);
             this.Controls.Add(this.btnUpdate);
             this.Controls.Add(this.btnEdit);

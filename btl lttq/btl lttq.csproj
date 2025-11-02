@@ -234,6 +234,12 @@
     <Compile Include="Friendprofile\ProfileForm.Designer.cs">
       <DependentUpon>ProfileForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Friendprofile\ProfileFriendForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Friendprofile\ProfileFriendForm.Designer.cs">
+      <DependentUpon>ProfileFriendForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Login\ForgotPasswordForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -284,6 +290,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Friendprofile\ProfileForm.resx">
       <DependentUpon>ProfileForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Friendprofile\ProfileFriendForm.resx">
+      <DependentUpon>ProfileFriendForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Login\ForgotPasswordForm.resx">
       <DependentUpon>ForgotPasswordForm.cs</DependentUpon>

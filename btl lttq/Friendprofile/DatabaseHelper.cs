@@ -48,6 +48,7 @@ namespace btl_lttq
             }
         }
 
+       
         // 🔹 Lấy danh sách bạn bè
         public static List<FriendInfo> GetFriends(Guid userId)
         {
@@ -64,15 +65,36 @@ namespace btl_lttq
                 {
                     list.Add(new FriendInfo
                     {
-                        FriendId = r.GetGuid(0),
-                        FriendName = r.GetString(1),
-                        AvatarUrl = r.IsDBNull(2) ? "default.png" : r.GetString(2),
-                        StatusText = r.IsDBNull(3) ? "" : r.GetString(3)
+                        FriendId = r.GetGuid(r.GetOrdinal("FriendId")),
+                        FriendName = r["FriendName"].ToString(),
+                        AvatarUrl = r["AvatarUrl"] == DBNull.Value ? "default.png" : r["AvatarUrl"].ToString(),
+                        StatusText = r["StatusText"] == DBNull.Value ? "" : r["StatusText"].ToString(),
+                        FriendUsername = r["FriendUsername"].ToString() // ✅ lấy username
                     });
                 }
             }
             return list;
         }
+
+        // 🔹 Lấy thông tin hồ sơ người dùng theo UserId
+        public static DataRow GetUserProfile(Guid userId)
+        {
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
+            using (SqlCommand cmd = new SqlCommand("sp_GetUserProfile", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                {
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+                }
+            }
+        }
+
+
     }
 
     public class FriendInfo
@@ -81,5 +103,6 @@ namespace btl_lttq
         public string FriendName { get; set; }
         public string AvatarUrl { get; set; }
         public string StatusText { get; set; }
+        public string FriendUsername { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using btl_lttq.Data; // dùng FriendInfo & DatabaseHelper trong namespace Data
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -12,16 +13,11 @@ namespace btl_lttq.Friendprofile
 {
     public partial class FriendListForm : Form
     {
+        private List<FriendInfo> allFriends = new List<FriendInfo>();
+
         public FriendListForm()
         {
             InitializeComponent();
-        }
-
-        private List<FriendInfo> allFriends = new List<FriendInfo>();
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            // Bạn có thể thêm logic tìm kiếm bạn bè ở đây nếu muốn realtime
         }
 
         private void FriendListForm_Load(object sender, EventArgs e)
@@ -34,126 +30,55 @@ namespace btl_lttq.Friendprofile
             txtSearch.GotFocus += RemoveText;
             txtSearch.LostFocus += AddText;
 
-            Guid currentUserId = GetUserId("anninh"); // ví dụ
+            // Khi mất focus mà ô tìm kiếm trống → hiển thị lại toàn bộ
+            txtSearch.LostFocus += (s, e2) =>
+            {
+                if (string.IsNullOrWhiteSpace(txtSearch.Text) || txtSearch.Text == "Tìm kiếm bạn bè")
+                {
+                    DisplayFriends(allFriends);
+                }
+            };
+
+            Guid currentUserId = GetUserId("anninh");
             allFriends = DatabaseHelper.GetFriends(currentUserId);
             DisplayFriends(allFriends);
 
-            // Khi click ra vùng trống trên form -> mất focus textbox
+         
+
+            // Nút Thêm bạn
+            btnAddFriend.Click += (_, __) =>
+            {
+                var addForm = new AddFriendForm(this);
+                addForm.StartPosition = FormStartPosition.CenterScreen;
+                addForm.FormClosed += (s2, e2) => this.Show();
+                this.Hide();
+                addForm.Show();
+            };
+
             this.Click += (_, __) => this.ActiveControl = null;
             panelHeader.Click += (_, __) => this.ActiveControl = null;
             flowFriends.Click += (_, __) => this.ActiveControl = null;
 
-            // Mở form kết bạn
-            btnAddFriend.Click += (_, __) =>
-            {
-                this.Hide();
-                AddFriendForm addForm = new AddFriendForm(this);
-                addForm.ShowDialog(); // mở dạng popup
-            };
+            this.ActiveControl = null;
         }
 
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            this.ActiveControl = null;
+        }
         public void ReloadFriends()
         {
-            LoadFriends(); 
+            LoadFriends();
         }
-
 
         private void LoadFriends()
         {
             try
             {
-                flowFriends.Controls.Clear();
-                using (SqlConnection conn = new SqlConnection("Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
-                {
-                    conn.Open();
-                    Guid currentUserId = GetUserId("anninh");
-
-                    string sql = "EXEC sp_GetFriendsByUserId @UserId = @uid";
-                    SqlCommand cmd = new SqlCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@uid", currentUserId);
-
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        string name = reader["FriendName"].ToString();
-                        string status = reader["StatusText"].ToString();
-                        string avatar = reader["AvatarUrl"].ToString();
-
-                        Panel p = new Panel();
-                        p.Width = flowFriends.Width - 35;
-                        p.Height = 70;
-                        p.Margin = new Padding(0, 0, 0, 10);
-                        p.BackColor = Color.WhiteSmoke;
-
-                        // Avatar
-                        PictureBox pic = new PictureBox();
-                        pic.Size = new Size(50, 50);
-                        pic.Location = new Point(10, 10);
-                        pic.SizeMode = PictureBoxSizeMode.Zoom;
-                        string path = Path.Combine(Application.StartupPath, "Images", avatar ?? "");
-                        if (File.Exists(path))
-                            pic.Image = Image.FromFile(path);
-                        else
-                            pic.BackColor = Color.LightGray;
-
-                        // 🔹 Bo tròn avatar
-                        pic.Paint += (s, e) =>
-                        {
-                            System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
-                            gp.AddEllipse(0, 0, pic.Width - 1, pic.Height - 1);
-                            pic.Region = new Region(gp);
-                        };
-
-                        // Label tên
-                        Label lblName = new Label();
-                        lblName.Text = name;
-                        lblName.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-                        lblName.AutoSize = true;
-                        lblName.Location = new Point(70, 15);
-
-                        // Label trạng thái
-                        Label lblStatus = new Label();
-                        lblStatus.Text = status;
-                        lblStatus.Font = new Font("Segoe UI", 8);
-                        lblStatus.ForeColor = Color.Gray;
-                        lblStatus.AutoSize = true;
-                        lblStatus.Location = new Point(70, 38);
-
-                        // 🔹 Nút “Nhắn tin”
-                        Button btnMsg = new Button();
-                        btnMsg.Text = "Nhắn tin";
-                        btnMsg.Font = new Font("Segoe UI", 9);
-                        btnMsg.ForeColor = Color.White;
-                        btnMsg.BackColor = Color.RoyalBlue;
-                        btnMsg.FlatStyle = FlatStyle.Flat;
-                        btnMsg.FlatAppearance.BorderSize = 0;
-                        btnMsg.Size = new Size(80, 30);
-                        btnMsg.Location = new Point(p.Width - 180, 20);
-                        btnMsg.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-                        // 🔹 Nút “Xóa bạn”
-                        Button btnDel = new Button();
-                        btnDel.Text = "Xóa bạn";
-                        btnDel.Font = new Font("Segoe UI", 9);
-                        btnDel.ForeColor = Color.White;
-                        btnDel.BackColor = Color.LightCoral;
-                        btnDel.FlatStyle = FlatStyle.Flat;
-                        btnDel.FlatAppearance.BorderSize = 0;
-                        btnDel.Size = new Size(80, 30);
-                        btnDel.Location = new Point(p.Width - 90, 20);
-                        btnDel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-                        // Thêm tất cả vào Panel
-                        p.Controls.Add(pic);
-                        p.Controls.Add(lblName);
-                        p.Controls.Add(lblStatus);
-                        p.Controls.Add(btnMsg);
-                        p.Controls.Add(btnDel);
-
-                        flowFriends.Controls.Add(p);
-                    }
-
-                }
+                Guid currentUserId = GetUserId("anninh");
+                allFriends = DatabaseHelper.GetFriends(currentUserId);
+                DisplayFriends(allFriends);
             }
             catch (Exception ex)
             {
@@ -161,9 +86,6 @@ namespace btl_lttq.Friendprofile
             }
         }
 
-
-
-        // Khi người dùng click vào ô — xóa placeholder
         private void RemoveText(object sender, EventArgs e)
         {
             if (txtSearch.Text == "Tìm kiếm bạn bè")
@@ -173,7 +95,6 @@ namespace btl_lttq.Friendprofile
             }
         }
 
-        // Khi người dùng rời khỏi ô — nếu rỗng thì hiện lại placeholder
         private void AddText(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtSearch.Text))
@@ -190,76 +111,114 @@ namespace btl_lttq.Friendprofile
 
             foreach (var f in friends)
             {
-                Panel p = new Panel();
-                p.Width = flowFriends.Width - 30;
-                p.Height = 70;
-                p.Margin = new Padding(0, 0, 0, 10);
-                p.BackColor = Color.WhiteSmoke;
+                var p = new Panel
+                {
+                    Width = flowFriends.Width - 30,
+                    Height = 70,
+                    Margin = new Padding(0, 0, 0, 10),
+                    BackColor = Color.WhiteSmoke
+                };
 
                 // Avatar
-                PictureBox avatar = new PictureBox();
-                avatar.Size = new Size(50, 50);
-                avatar.Location = new Point(10, 10);
-                avatar.SizeMode = PictureBoxSizeMode.Zoom;
-
+                var avatar = new PictureBox
+                {
+                    Size = new Size(50, 50),
+                    Location = new Point(10, 10),
+                    SizeMode = PictureBoxSizeMode.Zoom
+                };
                 string path = Path.Combine(Application.StartupPath, "Images", f.AvatarUrl ?? "");
-                if (File.Exists(path))
-                    avatar.Image = Image.FromFile(path);
-                else
-                    avatar.BackColor = Color.LightGray; // nếu chưa có ảnh mặc định
+                if (File.Exists(path)) avatar.Image = Image.FromFile(path);
+                else avatar.BackColor = Color.LightGray;
 
                 // Bo tròn avatar
                 avatar.Paint += (s, e) =>
                 {
-                    System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
+                    var gp = new System.Drawing.Drawing2D.GraphicsPath();
                     gp.AddEllipse(0, 0, avatar.Width - 1, avatar.Height - 1);
                     avatar.Region = new Region(gp);
                 };
 
                 // Tên bạn bè
-                Label lblName = new Label();
-                lblName.Text = f.FriendName;
-                lblName.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-                lblName.AutoSize = true;
-                lblName.Location = new Point(70, 10);
-
-                // Trạng thái
-                Label lblStatus = new Label();
-                lblStatus.Text = f.StatusText;
-                lblStatus.Font = new Font("Segoe UI", 9);
-                lblStatus.ForeColor = Color.Gray;
-                lblStatus.AutoSize = true;
-                lblStatus.Location = new Point(70, 35);
-
-                // Nút “Nhắn tin”
-                Button btnChat = new Button();
-                btnChat.Text = "Nhắn tin";
-                btnChat.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-                btnChat.ForeColor = Color.White;
-                btnChat.BackColor = Color.RoyalBlue;
-                btnChat.FlatStyle = FlatStyle.Flat;
-                btnChat.FlatAppearance.BorderSize = 0;
-                btnChat.FlatAppearance.MouseOverBackColor = Color.DodgerBlue;
-                btnChat.Size = new Size(90, 30);
-                btnChat.Location = new Point(p.Width - 180, 20);
-                btnChat.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                btnChat.Click += (s, e) =>
+                var lblName = new Label
                 {
-                    MessageBox.Show($"💬 Mở chat với {f.FriendName}");
+                    Text = f.FriendName,
+                    Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                    AutoSize = true,
+                    Location = new Point(70, 10)
                 };
 
+                // Trạng thái
+                var lblStatus = new Label
+                {
+                    Text = f.StatusText,
+                    Font = new Font("Segoe UI", 9),
+                    ForeColor = Color.Gray,
+                    AutoSize = true,
+                    Location = new Point(70, 35)
+                };
+
+                // Nút “Nhắn tin”
+                var btnChat = new Button
+                {
+                    Text = "Nhắn tin",
+                    Font = new Font("Segoe UI", 9),
+                    ForeColor = Color.White,
+                    BackColor = Color.RoyalBlue,
+                    FlatStyle = FlatStyle.Flat,
+                    Size = new Size(90, 30),
+                    Location = new Point(p.Width - 270, 20),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right
+                };
+                btnChat.FlatAppearance.BorderSize = 0;
+                btnChat.FlatAppearance.MouseOverBackColor = Color.DodgerBlue;
+                btnChat.Click += (s, e) => MessageBox.Show($"💬 Mở chat với {f.FriendName}");
+
+                // Nút “Thông tin” (ở giữa)
+                var btnInfo = new Button
+                {
+                    Text = "Thông tin",
+                    Font = new Font("Segoe UI", 9),
+                    ForeColor = Color.White,
+                    BackColor = Color.MediumSeaGreen,
+                    FlatStyle = FlatStyle.Flat,
+                    Size = new Size(90, 30),
+                    Location = new Point(p.Width - 180, 20),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right
+                };
+                btnInfo.FlatAppearance.BorderSize = 0;
+                btnInfo.FlatAppearance.MouseOverBackColor = Color.SeaGreen;
+
+                btnInfo.Click += (s, e) =>
+                {
+                    try
+                    {
+                        // ✅ Mở form hồ sơ bạn bè (ProfileFriendForm)
+                        var profileForm = new ProfileFriendForm(f.FriendId);
+                        profileForm.StartPosition = FormStartPosition.CenterScreen;
+                        profileForm.ShowDialog();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("❌ Không thể mở thông tin bạn bè: " + ex.Message);
+                    }
+                };
+
+
+
                 // Nút “Xóa bạn”
-                Button btnDelete = new Button();
-                btnDelete.Text = "Xóa bạn";
-                btnDelete.Font = new Font("Segoe UI", 9, FontStyle.Regular);
-                btnDelete.BackColor = Color.LightCoral;
-                btnDelete.ForeColor = Color.White;
-                btnDelete.FlatStyle = FlatStyle.Flat;
+                var btnDelete = new Button
+                {
+                    Text = "Xóa bạn",
+                    Font = new Font("Segoe UI", 9),
+                    BackColor = Color.LightCoral,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat,
+                    Size = new Size(80, 30),
+                    Location = new Point(p.Width - 90, 20),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right
+                };
                 btnDelete.FlatAppearance.BorderSize = 0;
                 btnDelete.FlatAppearance.MouseOverBackColor = Color.IndianRed;
-                btnDelete.Size = new Size(80, 30);
-                btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-                btnDelete.Location = new Point(p.Width - 90, 20);
 
                 btnDelete.Click += (s, e) =>
                 {
@@ -273,7 +232,7 @@ namespace btl_lttq.Friendprofile
                     {
                         try
                         {
-                            using (SqlConnection conn = new SqlConnection(
+                            using (var conn = new SqlConnection(
                                 "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
                             {
                                 conn.Open();
@@ -281,9 +240,9 @@ namespace btl_lttq.Friendprofile
                                     DELETE FROM Friendships
                                     WHERE (RequesterId = @userId AND AddresseeId = @friendId)
                                        OR (RequesterId = @friendId AND AddresseeId = @userId)";
-                                using (SqlCommand cmd = new SqlCommand(sql, conn))
+                                using (var cmd = new SqlCommand(sql, conn))
                                 {
-                                    cmd.Parameters.AddWithValue("@userId", GetUserId("anninh")); // user hiện tại
+                                    cmd.Parameters.AddWithValue("@userId", GetUserId("anninh"));
                                     cmd.Parameters.AddWithValue("@friendId", f.FriendId);
                                     cmd.ExecuteNonQuery();
                                 }
@@ -304,19 +263,19 @@ namespace btl_lttq.Friendprofile
                 p.Controls.Add(lblName);
                 p.Controls.Add(lblStatus);
                 p.Controls.Add(btnChat);
+                p.Controls.Add(btnInfo);
                 p.Controls.Add(btnDelete);
 
-                // Thêm panel vào FlowLayoutPanel
                 flowFriends.Controls.Add(p);
             }
         }
 
         private Guid GetUserId(string username)
         {
-            using (SqlConnection conn = new SqlConnection(
+            using (var conn = new SqlConnection(
                 "Data Source=DESKTOP-G1DJPBN,1433;Initial Catalog=MessengerDb;User ID=sa;Password=123456aA@$;TrustServerCertificate=True;"))
             {
-                SqlCommand cmd = new SqlCommand("SELECT Id FROM Users WHERE UserName=@u", conn);
+                var cmd = new SqlCommand("SELECT Id FROM Users WHERE UserName=@u", conn);
                 cmd.Parameters.AddWithValue("@u", username);
                 conn.Open();
                 return (Guid)cmd.ExecuteScalar();
@@ -325,34 +284,42 @@ namespace btl_lttq.Friendprofile
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-            string keyword = RemoveDiacritics(txtSearch.Text.Trim().ToLower());
+            string keyword = txtSearch.Text.Trim().ToLower();
 
-            if (string.IsNullOrEmpty(keyword))
+            if (string.IsNullOrEmpty(keyword) || txtSearch.Text == "Tìm kiếm bạn bè")
             {
                 DisplayFriends(allFriends);
                 return;
             }
 
+            string keywordNoDiacritics = RemoveDiacritics(keyword);
+
             var filtered = allFriends
-                .Where(f => RemoveDiacritics(f.FriendName.ToLower()).Contains(keyword))
+                .Where(f =>
+                {
+                    string name = f.FriendName?.ToLower() ?? "";
+                    string nameNoDiacritics = RemoveDiacritics(name);
+                    return name.Contains(keyword) || nameNoDiacritics.Contains(keywordNoDiacritics);
+                })
                 .ToList();
+
+            DisplayFriends(filtered);
 
             if (filtered.Count == 0)
             {
                 MessageBox.Show("Không tìm thấy bạn nào phù hợp.", "Thông báo");
             }
-
-            DisplayFriends(filtered);
         }
 
-        private string RemoveDiacritics(string text)
+        private static string RemoveDiacritics(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
-            var normalized = text.Normalize(NormalizationForm.FormD);
+            string normalized = text.Normalize(NormalizationForm.FormD);
             var sb = new StringBuilder();
-            foreach (var c in normalized)
+            foreach (char c in normalized)
             {
-                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                var cat = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (cat != UnicodeCategory.NonSpacingMark)
                     sb.Append(c);
             }
             return sb.ToString().Normalize(NormalizationForm.FormC);

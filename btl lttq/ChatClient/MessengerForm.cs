@@ -1,6 +1,5 @@
 ﻿using btl_lttq.ChatClient;
 using btl_lttq.Data;
-using btl_lttq.Data;
 using System;
 using System.ComponentModel;
 using System.Data.SqlClient;
@@ -163,10 +162,11 @@ namespace btl_lttq.ChatClient
             // Nút "Bạn bè" → mở danh sách bạn bè
             btnFriends.Click += (s, e) =>
             {
-                var f = new Friendprofile.FriendListForm(); // namespace chính xác của bạn
-                f.StartPosition = FormStartPosition.CenterParent;
-                f.ShowDialog(this);
+                var friendList = new Friendprofile.FriendListForm();
+                friendList.StartPosition = FormStartPosition.CenterScreen;
+                friendList.Show(); // không dùng ShowDialog để không chặn MessengerForm
             };
+
 
             // Nút "Hồ sơ" → mở thông tin cá nhân
             btnProfile.Click += (s, e) =>

@@ -7,9 +7,9 @@ namespace btl_lttq.Friendprofile
 {
     public class RoundedTextBox : UserControl
     {
-        private TextBox innerTextBox = new TextBox();
+        private readonly TextBox innerTextBox = new TextBox();
         private bool isFocused = false;
-        private bool isEditingMode = false; // chế độ sửa thông tin
+        private bool isEditingMode = false;
 
         public string TextValue
         {
@@ -31,7 +31,7 @@ namespace btl_lttq.Friendprofile
 
         public RoundedTextBox()
         {
-            // Giao diện
+            // Giao diện chung
             this.BackColor = Color.White;
             this.Padding = new Padding(4);
             this.Size = new Size(180, 28);
@@ -44,35 +44,47 @@ namespace btl_lttq.Friendprofile
             innerTextBox.BackColor = Color.White;
             innerTextBox.Dock = DockStyle.Fill;
 
-            // Focus
+            // ⚠️ Ngăn tự động chọn text khi form mở
             innerTextBox.GotFocus += (s, e) =>
             {
                 if (innerTextBox.ReadOnly)
                 {
+                    // Nếu đang ở chế độ chỉ xem thì bỏ qua focus
                     this.Parent?.SelectNextControl(this, true, true, true, true);
                     return;
                 }
+
+                // Ngăn bôi đen toàn bộ text khi focus
+                innerTextBox.SelectionLength = 0;
                 isFocused = true;
-                Invalidate(); // vẽ lại viền xanh đậm khi focus
+                Invalidate(); // đổi màu viền
             };
 
             innerTextBox.LostFocus += (s, e) =>
             {
                 isFocused = false;
-                Invalidate(); // trở lại xanh nhạt khi mất focus
+                Invalidate();
             };
 
-            // Chặn click khi bị khóa
-            this.MouseDown += (s, e) =>
-            {
-                if (innerTextBox.ReadOnly)
-                    this.Parent?.SelectNextControl(this, true, true, true, true);
-            };
+            // ⚙️ Ngăn auto-select text khi nhấn chuột
             innerTextBox.MouseDown += (s, e) =>
             {
                 if (innerTextBox.ReadOnly)
+                {
                     this.Parent?.SelectNextControl(this, true, true, true, true);
+                    e = null;
+                }
+                else
+                {
+                    // Dời vị trí con trỏ đúng nơi click, không bôi đen
+                    int pos = innerTextBox.GetCharIndexFromPosition(e.Location);
+                    innerTextBox.SelectionStart = pos;
+                    innerTextBox.SelectionLength = 0;
+                }
             };
+
+            // ⚙️ Ngăn việc Windows tự focus textbox đầu tiên trong form
+            this.GotFocus += (s, e) => { this.ActiveControl = null; };
 
             this.Controls.Add(innerTextBox);
         }
@@ -83,10 +95,6 @@ namespace btl_lttq.Friendprofile
             base.OnPaint(e);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 🔹 Quy tắc chọn màu viền:
-            // - Không focus → xanh nhạt (#66CCFF)
-            // - Focus → xanh đậm (#0066FF)
-            // - Bị khóa → xám nhạt
             Color borderColor;
             if (!this.Enabled)
                 borderColor = Color.FromArgb(200, 230, 250);
